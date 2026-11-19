@@ -245,9 +245,19 @@ python -m budget_aware_search.baselines.dense \
 ```bash
 python -m budget_aware_search.training.build_pairs \
   --input data/processed/train.parquet \
-  --output data/processed/biencoder_pairs.parquet \
+  --output data/processed/biencoder_pairs_v1.parquet \
   --max-positives-per-query 1 \
-  --negatives-per-positive 1
+  --negatives-per-positive 1 \
+  --negative-label-priority I,C \
+  --seed 42
+```
+
+audit：
+
+
+```bash
+python -m budget_aware_search.training.audit_pairs \
+  --pairs data/processed/biencoder_pairs_v1.parquet
 ```
 
 初始正负样本策略：
@@ -262,13 +272,17 @@ python -m budget_aware_search.training.build_pairs \
 
 ```bash
 python -m budget_aware_search.training.train_biencoder \
-  --pairs data/processed/biencoder_pairs.parquet \
+  --pairs data/processed/biencoder_pairs_v1.parquet \
   --base-model sentence-transformers/all-MiniLM-L6-v2 \
-  --output-dir models/biencoder_v1 \
+  --output-dir models/biencoder_v1_random \
   --epochs 1 \
   --batch-size 128 \
   --learning-rate 2e-5 \
-  --precision bf16
+  --max-seq-length 256 \
+  --precision bf16 \
+  --loss mnrl \
+  --seed 42 \
+  2>&1 | tee outputs/biencoder_v1_random.train.log
 ```
 
 4090 显存不足时：
@@ -283,14 +297,27 @@ python -m budget_aware_search.training.train_biencoder \
 python -m budget_aware_search.baselines.dense \
   --processed-dir data/processed \
   --split val \
-  --model models/biencoder_v1/final \
+  --model models/biencoder_v1_random/final \
   --device cuda \
+  --batch-size 512 \
   --cache-dir models/dense_cache \
-  --output outputs/biencoder_v1_val.parquet \
-  --bootstrap-samples 1000
+  --reencode-catalog \
+  --output outputs/biencoder_v1_random_val.parquet \
+  --bootstrap-samples 1000 \
+  2>&1 | tee outputs/biencoder_v1_random_val.log
 ```
 
 只有 validation 优于 pretrained baseline 才进入下一步。
+
+做 paired bootstrap comparison:
+
+```bash
+python -m budget_aware_search.evaluation.compare_rankings \
+  --baseline outputs/dense_pretrained_val.per_query.parquet \
+  --candidate outputs/biencoder_v1_random_val.per_query.parquet \
+  --output outputs/biencoder_v1_random_val.vs_pretrained.json \
+  --bootstrap-samples 5000
+```
 
 ---
 

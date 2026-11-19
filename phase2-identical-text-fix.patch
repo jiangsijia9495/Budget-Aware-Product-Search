@@ -1,0 +1,33 @@
+diff --git a/src/budget_aware_search/training/build_pairs.py b/src/budget_aware_search/training/build_pairs.py
+index 71ef3d8..eb0bcda 100644
+--- a/src/budget_aware_search/training/build_pairs.py
++++ b/src/budget_aware_search/training/build_pairs.py
+@@ -15,6 +15,7 @@ def _sample_by_label_priority(
+     group: pd.DataFrame,
+     *,
+     positive_product_id: str,
++    positive_text: str,
+     positive_label: str,
+     labels: Sequence[str],
+     count: int,
+@@ -33,9 +34,12 @@ def _sample_by_label_priority(
+             break
+         if label == positive_label:
+             continue
++        candidate_text = group["product_text"].fillna("").astype(str).str.strip()
++        normalized_positive_text = str(positive_text).strip()
+         pool = group.loc[
+             (group["esci_label"] == label)
+             & (group["product_id"].astype(str) != str(positive_product_id))
++            & candidate_text.ne(normalized_positive_text)
+         ].drop_duplicates("product_id")
+         if pool.empty:
+             continue
+@@ -95,6 +99,7 @@ def build_biencoder_pairs(
+             sampled = _sample_by_label_priority(
+                 group,
+                 positive_product_id=str(positive["product_id"]),
++                positive_text=str(positive["product_text"]),
+                 positive_label=positive_label,
+                 labels=labels,
+                 count=negatives_per_positive,

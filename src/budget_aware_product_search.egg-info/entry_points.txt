@@ -1,0 +1,5 @@
+[console_scripts]
+evaluate-ranking = budget_aware_search.metrics:main
+prepare-esci = budget_aware_search.data:main
+run-bm25 = budget_aware_search.baselines.bm25:main
+run-dense = budget_aware_search.baselines.dense:main

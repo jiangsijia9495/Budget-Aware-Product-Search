@@ -1,0 +1,58 @@
+seed: 42
+
+data:
+  examples_path: data/raw/shopping_queries_dataset_examples.parquet
+  products_path: data/raw/shopping_queries_dataset_products.parquet
+  locale: us
+  use_small_version: true
+  validation_fraction: 0.15
+  max_product_text_chars: 1600
+  product_text_fields:
+    - product_title
+    - product_brand
+    - product_color
+    - product_bullet_point
+    - product_description
+
+labels:
+  gains:
+    E: 1.0
+    S: 0.1
+    C: 0.01
+    I: 0.0
+
+bm25:
+  k1: 1.5
+  b: 0.75
+  min_df: 1
+  max_features: null
+
+dense:
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+  batch_size: 256
+  normalize_embeddings: true
+  device: cuda
+
+biencoder_training:
+  base_model: sentence-transformers/all-MiniLM-L6-v2
+  output_dir: models/biencoder
+  epochs: 1
+  batch_size: 64
+  learning_rate: 2.0e-5
+  precision: bf16
+  max_train_pairs: null
+
+cross_encoder_training:
+  base_model: microsoft/MiniLM-L12-H384-uncased
+  output_dir: models/cross_encoder
+  epochs: 1
+  batch_size: 32
+  learning_rate: 2.0e-5
+  precision: bf16
+  max_length: 256
+  max_train_rows: null
+
+routing:
+  reranker_latency_ms: 8.0
+  base_latency_ms: 1.0
+  latency_budget_ms: 5.0

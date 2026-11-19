@@ -45,8 +45,7 @@ I = 0.00
 - lower-bound nDCG；
 - condensed nDCG；
 - latency、QPS、memory、index size。
-
-不要把这些结果称为官方 full-corpus retrieval accuracy。
+- 
 
 ### Track C：SQID multimodal custom split
 
@@ -86,16 +85,16 @@ budget-aware-product-search/
 
 ## 3. 环境安装
 
-建议：Linux、Python 3.11、NVIDIA RTX 4090。
-
-先根据 PyTorch 官方安装页面安装与你本机 CUDA 匹配的 PyTorch，再安装项目：
+Linux、Python 3、NVIDIA RTX 4090。
 
 ```bash
-cd budget-aware-product-search
-python3 -m venv .venv
-source .venv/bin/activate
+cd /budget-aware-product-search
+conda create -n budget python=3.11 pip -y
+conda activate budget
+python --version
 python -m pip install --upgrade pip
-pip install -e ".[ml,dev]"
+python -m pip install -r requirements.txt
+python -m pip install -e ".[ml,dev]"
 ```
 
 检查：
@@ -136,14 +135,20 @@ bash scripts/run_phase1_debug.sh
 
 它会依次完成：
 
-1. query-disjoint train/validation split；
-2. source-order baseline；
-3. BM25；
-4. pretrained dense model。
+prepare query-disjoint data
+        ↓
+source-order baseline
+        ↓
+BM25 baseline
+        ↓
+pretrained dense baseline
+        ↓
+uniform nDCG evaluation
 
 查看：
 
 ```bash
+cat data/processed/dataset_summary.json
 cat outputs/source_order_val.metrics.json
 cat outputs/bm25_val.metrics.json
 cat outputs/dense_val.metrics.json
@@ -152,8 +157,6 @@ cat outputs/dense_val.metrics.json
 ### 正确性检查
 
 - train、val、test 的 `query_id` 不重叠；
-- 每个 query 的 candidate 数量与原始数据一致；
-- `product_text` 不应大量为空；
 - perfect ordering 的测试 nDCG 应为 1；
 - BM25 至少应能为 lexical query 产生非零分数；
 - dense score 不应全部相同。

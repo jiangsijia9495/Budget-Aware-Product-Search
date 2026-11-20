@@ -229,9 +229,10 @@ python -m budget_aware_search.baselines.dense \
   --model sentence-transformers/all-MiniLM-L6-v2 \
   --device cuda \
   --batch-size 512 \
-  --cache-dir models/dense_cache \
+  --cache-dir models/dense_cache_pretrained \
+  --reencode-catalog \
   --output outputs/dense_pretrained_val.parquet \
-  --bootstrap-samples 1000
+  --bootstrap-samples 1000 \
 ```
 
 可再增加一个更强但更慢的 baseline，例如 BGE 或 MPNet。模型名称和 license 必须记录在 experiment log 中。

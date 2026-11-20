@@ -48,6 +48,7 @@ def mine_from_candidate_scores(
                         "negative": str(negative["product_text"]),
                         "positive_product_id": str(positive["product_id"]),
                         "negative_product_id": str(negative["product_id"]),
+                        "positive_label": str(positive["esci_label"]),
                         "negative_label": str(negative["esci_label"]),
                         "negative_model_score": float(negative["score"]),
                         "negative_rank": negative_rank,

@@ -364,7 +364,7 @@ pretrained
 vs random negatives
 vs hard negatives
 ```
-
+hard negatives 失败
 ---
 
 # Milestone 3：Cross-Encoder reranker
@@ -375,6 +375,14 @@ vs hard negatives
 
 ```text
 score = P(E) * 1.00 + P(S) * 0.10 + P(C) * 0.01
+```
+
+
+
+or
+```bash
+GPU_ID=0 bash scripts/run_phase4_cross_encoder.sh \
+  2>&1 | tee outputs/cross_encoder_phase4_full.log
 ```
 
 训练：
@@ -392,23 +400,45 @@ python -m budget_aware_search.training.train_cross_encoder \
   --max-length 256
 ```
 
-显存不足：
-
-```bash
---batch-size 16 --gradient-accumulation-steps 2
-```
-
 验证打分：
 
 ```bash
-python -m budget_aware_search.training.score_cross_encoder \
-  --input data/processed/val.parquet \
-  --model models/cross_encoder_v1/final \
+CUDA_VISIBLE_DEVICES=0 \
+python -m budget_aware_search.baselines.cross_encoder \
+  --processed-dir data/processed \
+  --split val \
+  --model models/cross_encoder_esci_v1/final \
   --device cuda \
-  --batch-size 256 \
-  --output outputs/cross_encoder_v1_val.parquet \
-  --bootstrap-samples 1000
+  --batch-size 128 \
+  --max-length 256 \
+  --bootstrap-samples 1000 \
+  --output outputs/cross_encoder_esci_v1_val.parquet \
+  2>&1 | tee outputs/cross_encoder_esci_v1_val.log
 ```
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+python -m budget_aware_search.baselines.cross_encoder \
+  --processed-dir data/processed \
+  --split val \
+  --model models/cross_encoder_esci_v1/final \
+  --device cuda \
+  --batch-size 128 \
+  --max-length 256 \
+  --bootstrap-samples 1000 \
+  --output outputs/cross_encoder_esci_v1_val.parquet \
+  2>&1 | tee outputs/cross_encoder_esci_v1_val.log
+  ```
+
+```bash
+python -m budget_aware_search.evaluation.compare_rankings \
+  --baseline outputs/biencoder_v1_random_val.per_query.parquet \
+  --candidate outputs/cross_encoder_esci_v1_val.per_query.parquet \
+  --output outputs/cross_encoder_esci_v1_val.vs_biencoder_v1.json \
+  --bootstrap-samples 5000
+  ```
+
+
 
 Cross-Encoder 应比 bi-encoder 更准确但更慢。若没有提升，优先检查：
 
@@ -439,6 +469,14 @@ python -m budget_aware_search.routing.adaptive fit \
 ```
 
 最初可以用估计 latency 调试，但最终报告必须替换成真实 benchmark。
+至少评估：
+- Top-1/Top-2 score margin；
+- Score entropy；
+- Query length；
+- Dynamic reranking rate；
+- nDCG@10；
+- P50/P95/P99 latency；
+- Query throughput。
 
 router 使用 base top-1/top-2 margin：
 

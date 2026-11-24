@@ -781,26 +781,3 @@ Multimodal fusion             ...       ...         ...      ...%
 
 ---
 
-# 25. 最终简历 bullet 模板
-
-只有填入真实结果后才能使用：
-
-> Built a two-stage product-search system on **[N]** real query–product judgments, fine-tuning a dense bi-encoder with hard negatives and a 4-class Cross-Encoder reranker; improved candidate-pool nDCG@10 from **[A]** to **[B]** over BM25 and pretrained embedding baselines.
-
-> Designed a confidence-based adaptive reranking policy that invoked the expensive model for **[R]%** of queries while retaining **[Q]%** of always-rerank quality, reducing measured p95 inference latency by **[L]%**.
-
-> Exported model and embedding artifacts for a C++17 FAISS/ONNX Runtime benchmark, evaluating exact and HNSW retrieval across p50/p95/p99 latency, QPS, memory, ANN recall, and INT8 quality–efficiency trade-offs.
-
----
-
-# 26. 第一天只做这些
-
-```bash
-source .venv/bin/activate
-python scripts/check_environment.py
-pytest -q
-bash scripts/download_esci.sh
-bash scripts/run_phase1_debug.sh
-```
-
-第一天不要训练 Cross-Encoder，不要下载 SQID，不要写 C++。先确保数据协议、split、metric 和两个 baseline 全部正确。
